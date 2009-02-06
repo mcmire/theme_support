@@ -23,7 +23,7 @@ class Themeitem < Liquid::Block
          "#{base_url}/themes/#{theme_name}/stylesheets/#{filename}"
          
       elsif @@javascript_exts.include?( ext )
-         "#{base_url}/themes/#{theme_name}/javascript/#{filename}"
+         "#{base_url}/themes/#{theme_name}/javascripts/#{filename}"
       end
    end   
 end

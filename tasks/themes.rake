@@ -1,23 +1,38 @@
+namespace :theme do
+  namespace :cache do
+    desc "Creates the cached (public) theme folders"
+    task :create do
+      themes_root = File.join(RAILS_ROOT, "themes")
+      for theme in Dir.glob(File.join(themes_root, '*'))
 
-desc "Creates the cached (public) theme folders"
-task :theme_create_cache do
-  for theme in Dir.glob("#{RAILS_ROOT}/themes/*")
-    theme_name = theme.split( File::Separator )[-1]
-    puts "Creating #{RAILS_ROOT}/public/themes/#{theme_name}"
-    
-    FileUtils.mkdir_p "#{RAILS_ROOT}/public/themes/#{theme_name}"
-        
-    FileUtils.cp_r "#{theme}/images", "#{RAILS_ROOT}/public/themes/#{theme_name}/images", :verbose => true
-    FileUtils.cp_r "#{theme}/stylesheets", "#{RAILS_ROOT}/public/themes/#{theme_name}/stylesheets", :verbose => true
-    FileUtils.cp_r "#{theme}/javascript", "#{RAILS_ROOT}/public/themes/#{theme_name}/javascript", :verbose => true
+        theme_name = theme.split( File::Separator )[-1]
+        theme_root = File.join(RAILS_ROOT, "public", "themes", theme_name)
+
+        puts "Creating #{theme_root}"
+        FileUtils.mkdir_p "#{theme_root}"
+
+        %w{ images stylesheets javascripts }.each do |d|          
+          FileUtils.mkdir_p File.join(theme_root, d)
+          Dir.glob(File.join(theme, d, '**', '*')) do |f|                        
+            final_path = f[theme.length + 1, f.length]
+            if File.stat(f).directory? then               
+               FileUtils.mkdir_p File.join(theme_root, final_path) #, :verbose => true
+            else               
+               FileUtils.cp f, File.join(theme_root, final_path) #, :verbose => true
+            end
+          end
+        end
+      end
+    end
+
+    desc "Removes the cached (public) theme folders"
+    task :remove do
+      themes_cache = File.join(RAILS_ROOT, 'public', 'themes')
+      puts "Removing #{themes_cache}"
+      FileUtils.rm_r themes_cache, :force => true
+    end
+
+    desc "Updates the cached (public) theme folders"
+    task :update => [:remove, :create]
   end
 end
-
-desc "Removes the cached (public) theme folders"
-task :theme_remove_cache do
-  puts "Removing #{RAILS_ROOT}/public/themes"
-  FileUtils.rm_r "#{RAILS_ROOT}/public/themes", :force => true
-end
-
-desc "Updates the cached (public) theme folders"
-task :theme_update_cache => [:theme_remove_cache, :theme_create_cache]

@@ -9,7 +9,7 @@ class ThemeController < ActionController::Base
   end
 
   def javascript
-    render_theme_item(:javascript, params[:filename].to_s, params[:theme], 'text/javascript')
+    render_theme_item(:javascripts, params[:filename].to_s, params[:theme], 'text/javascript')
   end
 
   def images
