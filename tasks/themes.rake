@@ -1,5 +1,6 @@
 namespace :themes do
   namespace :cache do
+    
     desc "Creates the cached (public) theme folders"
     task :create do
       themes_root = File.join(RAILS_ROOT, "themes")
