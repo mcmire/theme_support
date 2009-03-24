@@ -1,4 +1,4 @@
-namespace :theme do
+namespace :themes do
   namespace :cache do
     desc "Creates the cached (public) theme folders"
     task :create do
