@@ -9,6 +9,8 @@ module ActionView
   
   private
     def _pick_template(template_path)
+      return theme_support_old_pick_template(template_path) unless controller.current_theme
+      
       search_path = [
         "#{RAILS_ROOT}/themes/#{controller.current_theme}/views",       # for components
         "#{RAILS_ROOT}/themes/#{controller.current_theme}",             # for layouts
