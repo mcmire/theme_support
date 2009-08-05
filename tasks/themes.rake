@@ -1,21 +1,37 @@
+def cache_theme_files(root, theme_name)
+  FileUtils.mkdir_p "#{root}/public/themes/#{theme_name}"
+  %w(images stylesheets javascripts).each do |assets|
+    FileUtils.cp_r "#{root}/themes/#{theme_name}/#{assets}", "#{root}/public/themes/#{theme_name}/#{assets}"
+  end
+end
+
 desc "Creates the cached (public) theme folders"
 task :theme_create_cache do
-  for theme in Dir.glob("#{RAILS_ROOT}/themes/*")
-    theme_name = theme.split( File::Separator )[-1]
-    puts "Creating #{RAILS_ROOT}/public/themes/#{theme_name}"
-    
-    FileUtils.mkdir_p "#{RAILS_ROOT}/public/themes/#{theme_name}"
-        
-    FileUtils.cp_r "#{theme}/images", "#{RAILS_ROOT}/public/themes/#{theme_name}/images", :verbose => true
-    FileUtils.cp_r "#{theme}/stylesheets", "#{RAILS_ROOT}/public/themes/#{theme_name}/stylesheets", :verbose => true
-    FileUtils.cp_r "#{theme}/javascripts", "#{RAILS_ROOT}/public/themes/#{theme_name}/javascripts", :verbose => true
+  $stdout.sync = true
+  root = File.expand_path(RAILS_ROOT)
+  if theme_name = ENV["THEME"]
+    puts "Copying theme files for '#{theme_name}'... done."
+    cache_theme_files(root, theme_name)
+  else
+    print "Copying theme files to public/..."
+    for theme_name in Dir.entries("#{root}/themes")
+      next if theme_name =~ /^\./
+      cache_theme_files(root, theme_name)
+      print " " + theme_name
+    end
+    puts " ...done."
   end
 end
 
 desc "Removes the cached (public) theme folders"
 task :theme_remove_cache do
-  puts "Removing #{RAILS_ROOT}/public/themes"
-  FileUtils.rm_r "#{RAILS_ROOT}/public/themes", :force => true
+  if theme_name = ENV["THEME"]
+    puts "Removing all theme files for '#{theme_name}' from public/... done."
+    FileUtils.rm_rf "#{RAILS_ROOT}/public/themes/#{theme_name}"
+  else
+    puts "Removing all theme files from public/... done."
+    FileUtils.rm_rf "#{RAILS_ROOT}/public/themes"
+  end
 end
 
 desc "Updates the cached (public) theme folders"

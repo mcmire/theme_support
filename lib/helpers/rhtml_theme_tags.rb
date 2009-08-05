@@ -88,7 +88,7 @@ module ActionView
           options[:onmouseout]  = "this.src='#{image_path(options[:src])}'"
         end
  
-        copy_theme_file(tag)
+        tag.cache_image_file
  
         tag("img", options)
       end
@@ -103,7 +103,7 @@ module ActionView
           options["onclick"] += "return #{confirm_javascript_function(confirm)};"
         end
         
-        copy_theme_file(tag)
+        tag.cache_image_file
 
         tag(:input, { "type" => "image", "src" => tag.public_path }.update(options.stringify_keys))
       end
@@ -135,17 +135,6 @@ module ActionView
           returning ThemeStylesheetTag.new(self, @controller, source) do |tag|
             tag.cache_key << theme_name
             tag.theme_name = theme_name
-          end
-        end
-        
-        def copy_theme_file(tag)
-          if File.exist?(tag.asset_file_path)
-            segments = [ASSETS_DIR, tag.public_path.split('?').first]
-            #segments.insert 1, 'cache', @controller.site.perma_host if Site.multi_sites_enabled
-            destination = File.join(segments)
-
-            FileUtils.mkdir_p File.dirname(destination)
-            FileUtils.cp tag.asset_file_path, destination
           end
         end
  
@@ -192,6 +181,18 @@ module ActionView
         class ThemeImageTag < ImageTag
           attr_accessor :cache_key
           include ThemeAssetTag
+          
+          def cache_image_file
+            if File.exist?(asset_file_path)
+              segments = [ASSETS_DIR, public_path.split('?').first]
+              #segments.insert 1, 'cache', @controller.site.perma_host if Site.multi_sites_enabled
+              destination = File.join(segments)
+              #unless File.exists?(destination)
+                FileUtils.mkdir_p File.dirname(destination)
+                FileUtils.cp asset_file_path, destination
+              #end
+            end
+          end
         end
  
         class ThemeJavaScriptTag < JavaScriptTag
