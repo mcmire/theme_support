@@ -72,9 +72,11 @@ module ActionView
  
  
       def theme_image_tag(theme_name, source, options = {})
+        tag = create_theme_image_tag(theme_name, source)
+        
         options.symbolize_keys!
  
-        options[:src] = path_to_theme_image(theme_name, source)
+        options[:src] = tag.public_path
         options[:alt] ||= File.basename(options[:src], '.*').split('.').first.to_s.capitalize
  
         if size = options.delete(:size)
@@ -86,18 +88,24 @@ module ActionView
           options[:onmouseout]  = "this.src='#{image_path(options[:src])}'"
         end
  
-        # copy the file
-        tag = create_theme_image_tag(theme_name, source)
-        if File.exist?(tag.asset_file_path)
-          segments = [ASSETS_DIR, tag.public_path.split('?').first]
-          #segments.insert 1, 'cache', @controller.site.perma_host if Site.multi_sites_enabled
-          destination = File.join(segments)
- 
-          FileUtils.mkdir_p File.dirname(destination)
-          FileUtils.cp tag.asset_file_path, destination
-        end
+        copy_theme_file(tag)
  
         tag("img", options)
+      end
+      
+      def theme_image_submit_tag(theme_name, source, options = {})
+        tag = create_theme_image_tag(theme_name, source)
+        
+        options.stringify_keys!
+
+        if confirm = options.delete("confirm")
+          options["onclick"] ||= ''
+          options["onclick"] += "return #{confirm_javascript_function(confirm)};"
+        end
+        
+        copy_theme_file(tag)
+
+        tag(:input, { "type" => "image", "src" => tag.public_path }.update(options.stringify_keys))
       end
  
       private
@@ -127,6 +135,17 @@ module ActionView
           returning ThemeStylesheetTag.new(self, @controller, source) do |tag|
             tag.cache_key << theme_name
             tag.theme_name = theme_name
+          end
+        end
+        
+        def copy_theme_file(tag)
+          if File.exist?(tag.asset_file_path)
+            segments = [ASSETS_DIR, tag.public_path.split('?').first]
+            #segments.insert 1, 'cache', @controller.site.perma_host if Site.multi_sites_enabled
+            destination = File.join(segments)
+
+            FileUtils.mkdir_p File.dirname(destination)
+            FileUtils.cp tag.asset_file_path, destination
           end
         end
  
