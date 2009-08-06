@@ -187,10 +187,10 @@ module ActionView
               segments = [ASSETS_DIR, public_path.split('?').first]
               #segments.insert 1, 'cache', @controller.site.perma_host if Site.multi_sites_enabled
               destination = File.join(segments)
-              #unless File.exists?(destination)
+              unless ActionController::Base.perform_caching and File.exists?(destination)
                 FileUtils.mkdir_p File.dirname(destination)
                 FileUtils.cp asset_file_path, destination
-              #end
+              end
             end
           end
         end
