@@ -20,7 +20,6 @@ module ActionView::Helpers::AssetTagHelper
       theme = theme || controller.current_theme
       compute_public_path(source, "themes/#{theme}/javascripts", 'js')
    end
-   
 
    # This tag it will automatially include theme specific css files
    def theme_stylesheet_link_tag(*sources)
@@ -45,6 +44,12 @@ module ActionView::Helpers::AssetTagHelper
      end
 
      tag("img", options)
+   end
+   
+   def theme_image_submit_tag( source, options = {})
+     options.stringify_keys!
+     options[:src] = theme_image_path(source)
+     tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
    end
    
    # This tag can be used to return theme-specific javscripts
